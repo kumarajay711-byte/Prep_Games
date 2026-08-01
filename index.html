@@ -2,25 +2,102 @@
 <html>
 <head>
   <title>Kids Numbers Game</title>
+
+  <!-- Important for mobile responsiveness -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; }
-    #question { font-size: 24px; margin: 20px; }
-    #result { font-size: 20px; margin: 10px; }
-    .correct { color: green; }
-    .wrong { color: red; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 16px;
+      background: #f5f7ff;
+    }
+
+    h1 {
+      font-size: 6vw; /* scales with screen width */
+      margin-bottom: 16px;
+    }
+
+    #game-container {
+      max-width: 480px;      /* good for phone */
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #question {
+      font-size: 5vw;
+      margin: 16px 0;
+    }
+
+    #answer {
+      font-size: 5vw;
+      padding: 10px;
+      width: 80%;
+      max-width: 280px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      display: inline-block;
+      margin: 8px;
+      padding: 12px 20px;
+      font-size: 4.5vw;
+      min-height: 48px;      /* touch-friendly size */
+      min-width: 120px;
+      border-radius: 999px;
+      border: none;
+      color: #fff;
+      background: #4a90e2;
+    }
+
+    button:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    #result {
+      font-size: 4.5vw;
+      margin-top: 12px;
+    }
+
+    .correct {
+      color: #1b9c43;
+    }
+
+    .wrong {
+      color: #d0021b;
+    }
+
+    /* Slightly larger text on very small phones */
+    @media (max-width: 360px) {
+      h1 { font-size: 7vw; }
+      #question { font-size: 6vw; }
+      #answer { font-size: 6vw; }
+      button { font-size: 5vw; }
+    }
   </style>
 </head>
 <body>
-  <h1>Before, After & Between</h1>
+  <div id="game-container">
+    <h1>Before, After & Between</h1>
 
-  <p id="question"></p>
+    <p id="question"></p>
 
-  <input id="answer" type="number" placeholder="Type your answer">
-  <br><br>
-  <button id="checkBtn">Check Answer</button>
-  <button id="nextBtn">Next Question</button>
+    <input id="answer" type="number" inputmode="numeric" placeholder="Type your answer">
 
-  <p id="result"></p>
+    <div>
+      <button id="checkBtn">Check</button>
+      <button id="nextBtn">Next</button>
+    </div>
+
+    <p id="result"></p>
+  </div>
 
   <script src="game.js"></script>
 </body>
