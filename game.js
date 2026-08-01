@@ -1,151 +1,104 @@
 // game.js
 
-let currentQuestion = null;
+(function () {
+  const MIN_NUMBER = 1;
+  const MAX_NUMBER = 10; // you can change range
 
-// ----- Stopwatch variables -----
-let timerInterval = null;
-let timerStartTime = null;
+  const numberDisplay = document.getElementById('numberDisplay');
+  const currentNumberLabel = document.getElementById('currentNumber');
+  const attemptsLabel = document.getElementById('attempts');
+  const bestTimeLabel = document.getElementById('bestTime');
+  const lastTimeLabel = document.getElementById('lastTime');
 
-// ----- Best time (per browser) -----
-const BEST_TIME_KEY = 'kids_numbers_best_time_ms';
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const randomBtn = document.getElementById('randomBtn');
 
-function randInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+  let currentNumber = MIN_NUMBER;
+  let attempts = 0;
+  let gameStartTime = null;
 
-// Load best time on startup
-function loadBestTime() {
-  const stored = localStorage.getItem(BEST_TIME_KEY);
-  const bestTimeEl = document.getElementById('best-time');
+  const BEST_TIME_KEY = 'kids_numbers_best_time_ms';
 
-  if (!bestTimeEl) return;
-
-  if (stored) {
-    const ms = Number(stored);
-    bestTimeEl.textContent = formatTime(ms);
-  } else {
-    bestTimeEl.textContent = '--:--';
-  }
-}
-
-function generateQuestion() {
-  const types = ['before', 'after', 'between'];
-  const type = types[randInt(0, types.length - 1)];
-
-  let questionText = '';
-  let correctAnswer = 0;
-
-  if (type === 'before') {
-    const n = randInt(2, 40);
-    questionText = `What number comes before ${n}?`;
-    correctAnswer = n - 1;
-    currentQuestion = { type, n, correctAnswer };
-  } else if (type === 'after') {
-    const n = randInt(1, 39);
-    questionText = `What number comes after ${n}?`;
-    correctAnswer = n + 1;
-    currentQuestion = { type, n, correctAnswer };
-  } else if (type === 'between') {
-    let a = randInt(1, 39);
-    let b = a + 2;
-    questionText = `What number comes between ${a} and ${b}?`;
-    correctAnswer = a + 1;
-    currentQuestion = { type, a, b, correctAnswer };
+  function formatTime(ms) {
+    if (ms == null) return '–';
+    const seconds = ms / 1000;
+    return seconds.toFixed(2) + 's';
   }
 
-  document.getElementById('question').textContent = questionText;
-  document.getElementById('answer').value = '';
-  const resultEl = document.getElementById('result');
-  resultEl.textContent = '';
-  resultEl.className = '';
-
-  // Start stopwatch for this new question
-  startQuestionTimer();
-}
-
-// ----- Time formatting -----
-function formatTime(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-  const seconds = String(totalSeconds % 60).padStart(2, '0');
-  return `${minutes}:${seconds}`;
-}
-
-// ----- Stopwatch functions -----
-function startQuestionTimer() {
-  // Clear any previous timer
-  if (timerInterval) {
-    clearInterval(timerInterval);
+  function loadBestTime() {
+    const stored = localStorage.getItem(BEST_TIME_KEY);
+    if (!stored) {
+      bestTimeLabel.textContent = '–';
+      return null;
+    }
+    const value = parseFloat(stored);
+    bestTimeLabel.textContent = formatTime(value);
+    return value;
   }
 
-  timerStartTime = Date.now();
-  const timerEl = document.getElementById('question-timer');
-  if (!timerEl) return;
-
-  // Reset display
-  timerEl.textContent = '00:00';
-
-  timerInterval = setInterval(() => {
-    const elapsed = Date.now() - timerStartTime;
-    timerEl.textContent = formatTime(elapsed);
-  }, 500); // update every 0.5s
-}
-
-function stopQuestionTimer() {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+  function saveBestTime(ms) {
+    localStorage.setItem(BEST_TIME_KEY, String(ms));
+    bestTimeLabel.textContent = formatTime(ms);
   }
-}
 
-// ----- Best time update -----
-function updateBestTimeIfNeeded() {
-  if (!timerStartTime) return;
+  function updateUI() {
+    numberDisplay.textContent = String(currentNumber);
+    currentNumberLabel.textContent = String(currentNumber);
+    attemptsLabel.textContent = String(attempts);
+  }
 
-  const endTime = Date.now();
-  const elapsedMs = endTime - timerStartTime;
-
-  const stored = localStorage.getItem(BEST_TIME_KEY);
-  let storedMs = stored ? Number(stored) : null;
-
-  // If no stored time or current is faster, update
-  if (storedMs === null || elapsedMs < storedMs) {
-    localStorage.setItem(BEST_TIME_KEY, String(elapsedMs));
-
-    const bestTimeEl = document.getElementById('best-time');
-    if (bestTimeEl) {
-      bestTimeEl.textContent = formatTime(elapsedMs);
+  function startGameIfNeeded() {
+    if (!gameStartTime) {
+      gameStartTime = performance.now();
     }
   }
-}
 
-// ----- Answer checking -----
-function checkAnswer() {
-  if (!currentQuestion) return;
+  function completeAttempt() {
+    if (!gameStartTime) return;
 
-  const ansInput = document.getElementById('answer').value;
-  const userAnswer = Number(ansInput);
-  const resultEl = document.getElementById('result');
+    const elapsed = performance.now() - gameStartTime;
+    lastTimeLabel.textContent = formatTime(elapsed);
 
-  if (userAnswer === currentQuestion.correctAnswer) {
-    resultEl.textContent = 'Correct! 🎉';
-    resultEl.className = 'correct';
+    const best = loadBestTime();
+    if (best == null || elapsed < best) {
+      saveBestTime(elapsed);
+    }
 
-    // Stop timer when answer is correct
-    stopQuestionTimer();
-
-    // Update best time if this attempt is faster
-    updateBestTimeIfNeeded();
-  } else {
-    resultEl.textContent = `Oops, try again. Correct answer is ${currentQuestion.correctAnswer}.`;
-    resultEl.className = 'wrong';
+    gameStartTime = performance.now();
+    attempts += 1;
+    updateUI();
   }
-}
 
-// ----- Event bindings -----
-document.getElementById('checkBtn').addEventListener('click', checkAnswer);
-document.getElementById('nextBtn').addEventListener('click', generateQuestion);
+  function setNumber(n) {
+    if (n < MIN_NUMBER) n = MIN_NUMBER;
+    if (n > MAX_NUMBER) n = MAX_NUMBER;
+    currentNumber = n;
+    updateUI();
+  }
 
-// Initial load: best time + first question
-loadBestTime();
-generateQuestion();
+  // Button handlers
+  prevBtn.addEventListener('click', function () {
+    startGameIfNeeded();
+    setNumber(currentNumber - 1);
+    completeAttempt();
+  });
+
+  nextBtn.addEventListener('click', function () {
+    startGameIfNeeded();
+    setNumber(currentNumber + 1);
+    completeAttempt();
+  });
+
+  randomBtn.addEventListener('click', function () {
+    startGameIfNeeded();
+    const randomNumber =
+      Math.floor(Math.random() * (MAX_NUMBER - MIN_NUMBER + 1)) + MIN_NUMBER;
+    setNumber(randomNumber);
+    completeAttempt();
+  });
+
+  // Initial load
+  loadBestTime();
+  updateUI();
+})();
