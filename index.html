@@ -2,11 +2,10 @@
 <html>
 <head>
   <title>Kids Numbers Game</title>
-
-  <!-- Important for mobile responsiveness -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    /* Base (mobile-first) styles */
     body {
       font-family: Arial, sans-serif;
       text-align: center;
@@ -15,18 +14,18 @@
       background: #f5f7ff;
     }
 
-    h1 {
-      font-size: 6vw; /* scales with screen width */
-      margin-bottom: 16px;
-    }
-
     #game-container {
-      max-width: 480px;      /* good for phone */
+      max-width: 480px;          /* fits phones, small tablets */
       margin: 0 auto;
       background: #ffffff;
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 6vw;            /* scales with screen width */
+      margin-bottom: 16px;
     }
 
     #question {
@@ -48,12 +47,13 @@
       margin: 8px;
       padding: 12px 20px;
       font-size: 4.5vw;
-      min-height: 48px;      /* touch-friendly size */
+      min-height: 48px;
       min-width: 120px;
       border-radius: 999px;
       border: none;
       color: #fff;
       background: #4a90e2;
+      cursor: pointer;
     }
 
     button:active {
@@ -74,12 +74,44 @@
       color: #d0021b;
     }
 
-    /* Slightly larger text on very small phones */
+    /* For very small phones */
     @media (max-width: 360px) {
       h1 { font-size: 7vw; }
       #question { font-size: 6vw; }
       #answer { font-size: 6vw; }
       button { font-size: 5vw; }
+    }
+
+    /* For tablets and desktops: make text a bit more "normal" size */
+    @media (min-width: 768px) {
+      body {
+        padding: 32px;
+      }
+
+      #game-container {
+        max-width: 600px;        /* wider on desktop/tablet */
+      }
+
+      h1 {
+        font-size: 32px;         /* fixed size for large screens */
+      }
+
+      #question {
+        font-size: 24px;
+      }
+
+      #answer {
+        font-size: 22px;
+      }
+
+      button {
+        font-size: 18px;
+        min-width: 140px;
+      }
+
+      #result {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
