@@ -1,104 +1,132 @@
-// game.js
+// game.js – Before / After / Between numbers game
 
 (function () {
   const MIN_NUMBER = 1;
-  const MAX_NUMBER = 10; // you can change range
+  const MAX_NUMBER = 100; // You can change to 20, 50, etc.
 
-  const numberDisplay = document.getElementById('numberDisplay');
-  const currentNumberLabel = document.getElementById('currentNumber');
-  const attemptsLabel = document.getElementById('attempts');
-  const bestTimeLabel = document.getElementById('bestTime');
-  const lastTimeLabel = document.getElementById('lastTime');
+  const questionTitle = document.getElementById('questionTitle');
+  const leftNumberEl = document.getElementById('leftNumber');
+  const rightNumberEl = document.getElementById('rightNumber');
+  const questionTextEl = document.getElementById('questionText');
+  const answerInput = document.getElementById('answerInput');
+  const feedbackEl = document.getElementById('feedback');
 
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const randomBtn = document.getElementById('randomBtn');
+  const checkBtn = document.getElementById('checkBtn');
+  const newQuestionBtn = document.getElementById('newQuestionBtn');
 
-  let currentNumber = MIN_NUMBER;
-  let attempts = 0;
-  let gameStartTime = null;
+  const modeLabel = document.getElementById('modeLabel');
+  const correctCountEl = document.getElementById('correctCount');
+  const totalCountEl = document.getElementById('totalCount');
+  const scoreLabel = document.getElementById('scoreLabel');
 
-  const BEST_TIME_KEY = 'kids_numbers_best_time_ms';
+  const MODES = ['Before', 'After', 'Between'];
+  let currentMode = 'Between';
+  let correctAnswer = null;
+  let correctCount = 0;
+  let totalCount = 0;
 
-  function formatTime(ms) {
-    if (ms == null) return '–';
-    const seconds = ms / 1000;
-    return seconds.toFixed(2) + 's';
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function loadBestTime() {
-    const stored = localStorage.getItem(BEST_TIME_KEY);
-    if (!stored) {
-      bestTimeLabel.textContent = '–';
-      return null;
+  function pickMode() {
+    const index = randomInt(0, MODES.length - 1);
+    currentMode = MODES[index];
+    modeLabel.textContent = currentMode;
+  }
+
+  function makeQuestion() {
+    // Pick mode and a base number
+    pickMode();
+    const n = randomInt(MIN_NUMBER + 2, MAX_NUMBER - 2); // keep space around
+
+    let left = null;
+    let right = null;
+    let titleText = '';
+    let helperText = '';
+
+    if (currentMode === 'Before') {
+      // Example: ? comes before 18
+      left = '?';
+      right = n;
+      correctAnswer = n - 1;
+      titleText = 'What number comes BEFORE?';
+      helperText = 'Type the number that comes just before the right number.';
+    } else if (currentMode === 'After') {
+      // Example: 18 comes before ?
+      left = n;
+      right = '?';
+      correctAnswer = n + 1;
+      titleText = 'What number comes AFTER?';
+      helperText = 'Type the number that comes just after the left number.';
+    } else {
+      // Between
+      // Example: 12 ? 14
+      left = n - 1;
+      right = n + 1;
+      correctAnswer = n;
+      titleText = 'What number comes BETWEEN?';
+      helperText = 'Type the number that lies between the two numbers.';
     }
-    const value = parseFloat(stored);
-    bestTimeLabel.textContent = formatTime(value);
-    return value;
+
+    // Update UI
+    questionTitle.textContent = titleText;
+    leftNumberEl.textContent = String(left);
+    rightNumberEl.textContent = String(right);
+    questionTextEl.textContent = '?';
+    feedbackEl.textContent = helperText;
+    feedbackEl.style.color = '#ffffff';
+
+    answerInput.value = '';
+    answerInput.focus();
   }
 
-  function saveBestTime(ms) {
-    localStorage.setItem(BEST_TIME_KEY, String(ms));
-    bestTimeLabel.textContent = formatTime(ms);
+  function updateStats() {
+    correctCountEl.textContent = String(correctCount);
+    totalCountEl.textContent = String(totalCount);
+    const score = totalCount === 0 ? 0 : Math.round((correctCount / totalCount) * 100);
+    scoreLabel.textContent = score + '%';
   }
 
-  function updateUI() {
-    numberDisplay.textContent = String(currentNumber);
-    currentNumberLabel.textContent = String(currentNumber);
-    attemptsLabel.textContent = String(attempts);
-  }
-
-  function startGameIfNeeded() {
-    if (!gameStartTime) {
-      gameStartTime = performance.now();
-    }
-  }
-
-  function completeAttempt() {
-    if (!gameStartTime) return;
-
-    const elapsed = performance.now() - gameStartTime;
-    lastTimeLabel.textContent = formatTime(elapsed);
-
-    const best = loadBestTime();
-    if (best == null || elapsed < best) {
-      saveBestTime(elapsed);
+  function checkAnswer() {
+    const value = answerInput.value.trim();
+    if (value === '') {
+      feedbackEl.textContent = 'Type a number to check!';
+      feedbackEl.style.color = '#ffeb3b';
+      return;
     }
 
-    gameStartTime = performance.now();
-    attempts += 1;
-    updateUI();
+    const userNumber = parseInt(value, 10);
+    totalCount += 1;
+
+    if (userNumber === correctAnswer) {
+      correctCount += 1;
+      feedbackEl.textContent = 'Great job! That is correct ✅';
+      feedbackEl.style.color = '#00ffb0';
+      questionTextEl.textContent = String(correctAnswer);
+    } else {
+      feedbackEl.textContent =
+        'Oops! Try again. The correct answer is ' + correctAnswer + '.';
+      feedbackEl.style.color = '#ff5252';
+      questionTextEl.textContent = String(correctAnswer);
+    }
+
+    updateStats();
   }
 
-  function setNumber(n) {
-    if (n < MIN_NUMBER) n = MIN_NUMBER;
-    if (n > MAX_NUMBER) n = MAX_NUMBER;
-    currentNumber = n;
-    updateUI();
-  }
-
-  // Button handlers
-  prevBtn.addEventListener('click', function () {
-    startGameIfNeeded();
-    setNumber(currentNumber - 1);
-    completeAttempt();
+  // Event listeners
+  checkBtn.addEventListener('click', checkAnswer);
+  newQuestionBtn.addEventListener('click', function () {
+    makeQuestion();
   });
 
-  nextBtn.addEventListener('click', function () {
-    startGameIfNeeded();
-    setNumber(currentNumber + 1);
-    completeAttempt();
+  answerInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      checkAnswer();
+    }
   });
 
-  randomBtn.addEventListener('click', function () {
-    startGameIfNeeded();
-    const randomNumber =
-      Math.floor(Math.random() * (MAX_NUMBER - MIN_NUMBER + 1)) + MIN_NUMBER;
-    setNumber(randomNumber);
-    completeAttempt();
-  });
-
-  // Initial load
-  loadBestTime();
-  updateUI();
+  // Initial question
+  makeQuestion();
+  updateStats();
 })();
