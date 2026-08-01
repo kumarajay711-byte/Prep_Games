@@ -6,8 +6,26 @@ let currentQuestion = null;
 let timerInterval = null;
 let timerStartTime = null;
 
+// ----- Best time (per browser) -----
+const BEST_TIME_KEY = 'kids_numbers_best_time_ms';
+
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Load best time on startup
+function loadBestTime() {
+  const stored = localStorage.getItem(BEST_TIME_KEY);
+  const bestTimeEl = document.getElementById('best-time');
+
+  if (!bestTimeEl) return;
+
+  if (stored) {
+    const ms = Number(stored);
+    bestTimeEl.textContent = formatTime(ms);
+  } else {
+    bestTimeEl.textContent = '--:--';
+  }
 }
 
 function generateQuestion() {
@@ -45,7 +63,7 @@ function generateQuestion() {
   startQuestionTimer();
 }
 
-// ----- Stopwatch functions -----
+// ----- Time formatting -----
 function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -53,6 +71,7 @@ function formatTime(ms) {
   return `${minutes}:${seconds}`;
 }
 
+// ----- Stopwatch functions -----
 function startQuestionTimer() {
   // Clear any previous timer
   if (timerInterval) {
@@ -79,6 +98,27 @@ function stopQuestionTimer() {
   }
 }
 
+// ----- Best time update -----
+function updateBestTimeIfNeeded() {
+  if (!timerStartTime) return;
+
+  const endTime = Date.now();
+  const elapsedMs = endTime - timerStartTime;
+
+  const stored = localStorage.getItem(BEST_TIME_KEY);
+  let storedMs = stored ? Number(stored) : null;
+
+  // If no stored time or current is faster, update
+  if (storedMs === null || elapsedMs < storedMs) {
+    localStorage.setItem(BEST_TIME_KEY, String(elapsedMs));
+
+    const bestTimeEl = document.getElementById('best-time');
+    if (bestTimeEl) {
+      bestTimeEl.textContent = formatTime(elapsedMs);
+    }
+  }
+}
+
 // ----- Answer checking -----
 function checkAnswer() {
   if (!currentQuestion) return;
@@ -93,6 +133,9 @@ function checkAnswer() {
 
     // Stop timer when answer is correct
     stopQuestionTimer();
+
+    // Update best time if this attempt is faster
+    updateBestTimeIfNeeded();
   } else {
     resultEl.textContent = `Oops, try again. Correct answer is ${currentQuestion.correctAnswer}.`;
     resultEl.className = 'wrong';
@@ -103,5 +146,6 @@ function checkAnswer() {
 document.getElementById('checkBtn').addEventListener('click', checkAnswer);
 document.getElementById('nextBtn').addEventListener('click', generateQuestion);
 
-// Initial question on load
+// Initial load: best time + first question
+loadBestTime();
 generateQuestion();
