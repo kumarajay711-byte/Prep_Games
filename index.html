@@ -1,14 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Numbers Before After Between</title>
-    <link rel="stylesheet" href="style.css">
+  <title>Kids Numbers Game</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    #question { font-size: 24px; margin: 20px; }
+    #result { font-size: 20px; margin: 10px; }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
 </head>
 <body>
-    <h1>Learn Numbers: Before, After, Between</h1>
-    <div id="game"></div>
+  <h1>Before, After & Between</h1>
 
-    <script src="script.js"></script>
+  <p id="question"></p>
+
+  <input id="answer" type="number" placeholder="Type your answer">
+  <br><br>
+  <button id="checkBtn">Check Answer</button>
+  <button id="nextBtn">Next Question</button>
+
+  <p id="result"></p>
+
+  <script src="game.js"></script>
 </body>
 </html>
