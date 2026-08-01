@@ -15,13 +15,14 @@
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      background: linear-gradient(135deg, #4facfe, #00f2fe); /* default blue-ish */
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 1rem;
       color: #fff;
+      transition: background 0.3s ease; /* smooth color change */
     }
 
     .app-container {
@@ -50,7 +51,6 @@
       opacity: 0.85;
     }
 
-    /* Layout: mobile-first (single column) */
     .layout {
       display: flex;
       flex-direction: column;
@@ -146,7 +146,6 @@
       opacity: 0.8;
     }
 
-    /* Tablet and small desktop: two columns */
     @media (min-width: 768px) {
       .app-container {
         padding: 2rem;
@@ -174,7 +173,6 @@
       }
     }
 
-    /* Large desktop: bigger text and spacing */
     @media (min-width: 1200px) {
       .app-container {
         max-width: 1100px;
@@ -270,7 +268,9 @@
   <script>
     (function () {
       const MIN_NUMBER = 1;
-      const MAX_NUMBER = 100; // Change if you want smaller range
+      const MAX_NUMBER = 100;
+
+      const bodyEl = document.body;
 
       const questionTitle = document.getElementById('questionTitle');
       const leftNumberEl = document.getElementById('leftNumber');
@@ -297,6 +297,18 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
+      function setBackgroundDefault() {
+        bodyEl.style.background = 'linear-gradient(135deg, #4facfe, #00f2fe)'; // blue-ish
+      }
+
+      function setBackgroundCorrect() {
+        bodyEl.style.background = 'linear-gradient(135deg, #00c853, #b2ff59)'; // green
+      }
+
+      function setBackgroundWrong() {
+        bodyEl.style.background = 'linear-gradient(135deg, #d50000, #ff5252)'; // red
+      }
+
       function pickMode() {
         const index = randomInt(0, MODES.length - 1);
         currentMode = MODES[index];
@@ -310,7 +322,9 @@
         let titleText = '';
         let helperText = '';
 
+        // Reset visuals and background for a new question
         middleSlotEl.textContent = '';
+        setBackgroundDefault();
 
         if (currentMode === 'Before') {
           leftNumberEl.textContent = '?';
@@ -363,7 +377,8 @@
         if (userNumber === correctAnswer) {
           correctCount += 1;
           feedbackEl.textContent = 'Great job! That is correct ✅';
-          feedbackEl.style.color = '#00ffb0';
+          feedbackEl.style.color = '#ffffff';
+          setBackgroundCorrect();
 
           if (currentMode === 'Between') {
             middleSlotEl.textContent = String(correctAnswer);
@@ -375,7 +390,8 @@
         } else {
           feedbackEl.textContent =
             'Oops! Try again. The correct answer is ' + correctAnswer + '.';
-          feedbackEl.style.color = '#ff5252';
+          feedbackEl.style.color = '#ffffff';
+          setBackgroundWrong();
 
           if (currentMode === 'Between') {
             middleSlotEl.textContent = String(correctAnswer);
