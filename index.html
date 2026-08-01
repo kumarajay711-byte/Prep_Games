@@ -203,14 +203,12 @@
 
         <div
           id="questionArea"
-          style="text-align: center; font-size: 1.4rem; margin-top: 1rem;"
+          style="text-align: center; font-size: 1.6rem; margin-top: 1rem;"
         >
-          <!-- Example: 12 ? 14 -->
-          <span id="leftNumber">12</span>
+          <!-- Example (Before): ? ➜ 18, (After): 18 ➜ ?, (Between): 12 ➜ 14 -->
+          <span id="leftNumber">?</span>
           <span style="margin: 0 0.75rem;">➜</span>
-          <span id="questionText">?</span>
-          <span style="margin: 0 0.75rem;">➜</span>
-          <span id="rightNumber">14</span>
+          <span id="rightNumber">18</span>
         </div>
 
         <div class="controls" style="margin-top: 1.25rem;">
@@ -270,7 +268,6 @@
       const questionTitle = document.getElementById('questionTitle');
       const leftNumberEl = document.getElementById('leftNumber');
       const rightNumberEl = document.getElementById('rightNumber');
-      const questionTextEl = document.getElementById('questionText');
       const answerInput = document.getElementById('answerInput');
       const feedbackEl = document.getElementById('feedback');
 
@@ -299,44 +296,38 @@
       }
 
       function makeQuestion() {
-        // Pick mode and a base number
         pickMode();
-        const n = randomInt(MIN_NUMBER + 2, MAX_NUMBER - 2); // keep space around
+        const n = randomInt(MIN_NUMBER + 2, MAX_NUMBER - 2);
 
-        let left = null;
-        let right = null;
         let titleText = '';
         let helperText = '';
 
         if (currentMode === 'Before') {
-          // Example: ? comes before 18
-          left = '?';
-          right = n;
+          // ? ➜ n
+          leftNumberEl.textContent = '?';
+          rightNumberEl.textContent = String(n);
           correctAnswer = n - 1;
           titleText = 'What number comes BEFORE?';
           helperText = 'Type the number that comes just before the right number.';
         } else if (currentMode === 'After') {
-          // Example: 18 comes before ?
-          left = n;
-          right = '?';
+          // n ➜ ?
+          leftNumberEl.textContent = String(n);
+          rightNumberEl.textContent = '?';
           correctAnswer = n + 1;
           titleText = 'What number comes AFTER?';
           helperText = 'Type the number that comes just after the left number.';
         } else {
-          // Between
-          // Example: 12 ? 14
-          left = n - 1;
-          right = n + 1;
+          // Between: show two numbers; kid types middle number
+          // Example: 12 ➜ 14, answer is 13
+          leftNumberEl.textContent = String(n - 1);
+          rightNumberEl.textContent = String(n + 1);
           correctAnswer = n;
           titleText = 'What number comes BETWEEN?';
-          helperText = 'Type the number that lies between the two numbers.';
+          helperText =
+            'Type the number that lies between the two numbers (middle number).';
         }
 
-        // Update UI
         questionTitle.textContent = titleText;
-        leftNumberEl.textContent = String(left);
-        rightNumberEl.textContent = String(right);
-        questionTextEl.textContent = '?';
         feedbackEl.textContent = helperText;
         feedbackEl.style.color = '#ffffff';
 
@@ -366,18 +357,15 @@
           correctCount += 1;
           feedbackEl.textContent = 'Great job! That is correct ✅';
           feedbackEl.style.color = '#00ffb0';
-          questionTextEl.textContent = String(correctAnswer);
         } else {
           feedbackEl.textContent =
             'Oops! Try again. The correct answer is ' + correctAnswer + '.';
           feedbackEl.style.color = '#ff5252';
-          questionTextEl.textContent = String(correctAnswer);
         }
 
         updateStats();
       }
 
-      // Event listeners
       checkBtn.addEventListener('click', checkAnswer);
       newQuestionBtn.addEventListener('click', function () {
         makeQuestion();
@@ -389,7 +377,6 @@
         }
       });
 
-      // Initial question
       makeQuestion();
       updateStats();
     })();
