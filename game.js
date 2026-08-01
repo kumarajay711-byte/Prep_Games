@@ -2,6 +2,10 @@
 
 let currentQuestion = null;
 
+// ----- Stopwatch variables -----
+let timerInterval = null;
+let timerStartTime = null;
+
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -33,9 +37,49 @@ function generateQuestion() {
 
   document.getElementById('question').textContent = questionText;
   document.getElementById('answer').value = '';
-  document.getElementById('result').textContent = '';
+  const resultEl = document.getElementById('result');
+  resultEl.textContent = '';
+  resultEl.className = '';
+
+  // Start stopwatch for this new question
+  startQuestionTimer();
 }
 
+// ----- Stopwatch functions -----
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
+function startQuestionTimer() {
+  // Clear any previous timer
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  timerStartTime = Date.now();
+  const timerEl = document.getElementById('question-timer');
+  if (!timerEl) return;
+
+  // Reset display
+  timerEl.textContent = '00:00';
+
+  timerInterval = setInterval(() => {
+    const elapsed = Date.now() - timerStartTime;
+    timerEl.textContent = formatTime(elapsed);
+  }, 500); // update every 0.5s
+}
+
+function stopQuestionTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+// ----- Answer checking -----
 function checkAnswer() {
   if (!currentQuestion) return;
 
@@ -46,14 +90,18 @@ function checkAnswer() {
   if (userAnswer === currentQuestion.correctAnswer) {
     resultEl.textContent = 'Correct! 🎉';
     resultEl.className = 'correct';
+
+    // Stop timer when answer is correct
+    stopQuestionTimer();
   } else {
-    resultEl.textContent =
-      `Oops, try again. Correct answer is ${currentQuestion.correctAnswer}.`;
+    resultEl.textContent = `Oops, try again. Correct answer is ${currentQuestion.correctAnswer}.`;
     resultEl.className = 'wrong';
   }
 }
 
+// ----- Event bindings -----
 document.getElementById('checkBtn').addEventListener('click', checkAnswer);
 document.getElementById('nextBtn').addEventListener('click', generateQuestion);
 
+// Initial question on load
 generateQuestion();
