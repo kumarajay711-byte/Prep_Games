@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Kids Numbers Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
     /* Base (mobile-first) styles */
     body {
@@ -15,7 +14,7 @@
     }
 
     #game-container {
-      max-width: 480px;          /* fits phones, small tablets */
+      max-width: 480px; /* fits phones, small tablets */
       margin: 0 auto;
       background: #ffffff;
       border-radius: 12px;
@@ -24,7 +23,7 @@
     }
 
     h1 {
-      font-size: 6vw;            /* scales with screen width */
+      font-size: 6vw; /* scales with screen width */
       margin-bottom: 16px;
     }
 
@@ -74,12 +73,21 @@
       color: #d0021b;
     }
 
+    /* Timer styles */
+    .timer-container {
+      margin-top: 12px;
+      font-size: 4.5vw;
+      color: #333;
+    }
+
     /* For very small phones */
     @media (max-width: 360px) {
       h1 { font-size: 7vw; }
       #question { font-size: 6vw; }
       #answer { font-size: 6vw; }
       button { font-size: 5vw; }
+      #result { font-size: 5vw; }
+      .timer-container { font-size: 5vw; }
     }
 
     /* For tablets and desktops: make text a bit more "normal" size */
@@ -87,39 +95,36 @@
       body {
         padding: 32px;
       }
-
       #game-container {
-        max-width: 600px;        /* wider on desktop/tablet */
+        max-width: 600px; /* wider on desktop/tablet */
       }
-
       h1 {
-        font-size: 32px;         /* fixed size for large screens */
+        font-size: 32px; /* fixed size for large screens */
       }
-
       #question {
         font-size: 24px;
       }
-
       #answer {
         font-size: 22px;
       }
-
       button {
         font-size: 18px;
         min-width: 140px;
       }
-
       #result {
         font-size: 20px;
+      }
+      .timer-container {
+        font-size: 18px;
       }
     }
   </style>
 </head>
 <body>
   <div id="game-container">
-    <h1>Before, After & Between</h1>
+    <h1>Before, After &amp; Between</h1>
 
-    <p id="question"></p>
+    <div id="question"></div>
 
     <input id="answer" type="number" inputmode="numeric" placeholder="Type your answer">
 
@@ -128,7 +133,12 @@
       <button id="nextBtn">Next</button>
     </div>
 
-    <p id="result"></p>
+    <div id="result"></div>
+
+    <!-- Stopwatch display -->
+    <div class="timer-container">
+      Time: <span id="question-timer">00:00</span>
+    </div>
   </div>
 
   <script src="game.js"></script>
