@@ -1,146 +1,151 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Kids Numbers Game</title>
-  <style>
-    /* Base (mobile-first) styles */
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 16px;
-      background: #f5f7ff;
+// game.js
+
+let currentQuestion = null;
+
+// ----- Stopwatch variables -----
+let timerInterval = null;
+let timerStartTime = null;
+
+// ----- Best time (per browser) -----
+const BEST_TIME_KEY = 'kids_numbers_best_time_ms';
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Load best time on startup
+function loadBestTime() {
+  const stored = localStorage.getItem(BEST_TIME_KEY);
+  const bestTimeEl = document.getElementById('best-time');
+
+  if (!bestTimeEl) return;
+
+  if (stored) {
+    const ms = Number(stored);
+    bestTimeEl.textContent = formatTime(ms);
+  } else {
+    bestTimeEl.textContent = '--:--';
+  }
+}
+
+function generateQuestion() {
+  const types = ['before', 'after', 'between'];
+  const type = types[randInt(0, types.length - 1)];
+
+  let questionText = '';
+  let correctAnswer = 0;
+
+  if (type === 'before') {
+    const n = randInt(2, 40);
+    questionText = `What number comes before ${n}?`;
+    correctAnswer = n - 1;
+    currentQuestion = { type, n, correctAnswer };
+  } else if (type === 'after') {
+    const n = randInt(1, 39);
+    questionText = `What number comes after ${n}?`;
+    correctAnswer = n + 1;
+    currentQuestion = { type, n, correctAnswer };
+  } else if (type === 'between') {
+    let a = randInt(1, 39);
+    let b = a + 2;
+    questionText = `What number comes between ${a} and ${b}?`;
+    correctAnswer = a + 1;
+    currentQuestion = { type, a, b, correctAnswer };
+  }
+
+  document.getElementById('question').textContent = questionText;
+  document.getElementById('answer').value = '';
+  const resultEl = document.getElementById('result');
+  resultEl.textContent = '';
+  resultEl.className = '';
+
+  // Start stopwatch for this new question
+  startQuestionTimer();
+}
+
+// ----- Time formatting -----
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
+// ----- Stopwatch functions -----
+function startQuestionTimer() {
+  // Clear any previous timer
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  timerStartTime = Date.now();
+  const timerEl = document.getElementById('question-timer');
+  if (!timerEl) return;
+
+  // Reset display
+  timerEl.textContent = '00:00';
+
+  timerInterval = setInterval(() => {
+    const elapsed = Date.now() - timerStartTime;
+    timerEl.textContent = formatTime(elapsed);
+  }, 500); // update every 0.5s
+}
+
+function stopQuestionTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+// ----- Best time update -----
+function updateBestTimeIfNeeded() {
+  if (!timerStartTime) return;
+
+  const endTime = Date.now();
+  const elapsedMs = endTime - timerStartTime;
+
+  const stored = localStorage.getItem(BEST_TIME_KEY);
+  let storedMs = stored ? Number(stored) : null;
+
+  // If no stored time or current is faster, update
+  if (storedMs === null || elapsedMs < storedMs) {
+    localStorage.setItem(BEST_TIME_KEY, String(elapsedMs));
+
+    const bestTimeEl = document.getElementById('best-time');
+    if (bestTimeEl) {
+      bestTimeEl.textContent = formatTime(elapsedMs);
     }
+  }
+}
 
-    #game-container {
-      max-width: 480px; /* fits phones, small tablets */
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+// ----- Answer checking -----
+function checkAnswer() {
+  if (!currentQuestion) return;
 
-    h1 {
-      font-size: 6vw; /* scales with screen width */
-      margin-bottom: 16px;
-    }
+  const ansInput = document.getElementById('answer').value;
+  const userAnswer = Number(ansInput);
+  const resultEl = document.getElementById('result');
 
-    #question {
-      font-size: 5vw;
-      margin: 16px 0;
-    }
+  if (userAnswer === currentQuestion.correctAnswer) {
+    resultEl.textContent = 'Correct! 🎉';
+    resultEl.className = 'correct';
 
-    #answer {
-      font-size: 5vw;
-      padding: 10px;
-      width: 80%;
-      max-width: 280px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+    // Stop timer when answer is correct
+    stopQuestionTimer();
 
-    button {
-      display: inline-block;
-      margin: 8px;
-      padding: 12px 20px;
-      font-size: 4.5vw;
-      min-height: 48px;
-      min-width: 120px;
-      border-radius: 999px;
-      border: none;
-      color: #fff;
-      background: #4a90e2;
-      cursor: pointer;
-    }
+    // Update best time if this attempt is faster
+    updateBestTimeIfNeeded();
+  } else {
+    resultEl.textContent = `Oops, try again. Correct answer is ${currentQuestion.correctAnswer}.`;
+    resultEl.className = 'wrong';
+  }
+}
 
-    button:active {
-      transform: scale(0.98);
-      opacity: 0.9;
-    }
+// ----- Event bindings -----
+document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+document.getElementById('nextBtn').addEventListener('click', generateQuestion);
 
-    #result {
-      font-size: 4.5vw;
-      margin-top: 12px;
-    }
-
-    .correct {
-      color: #1b9c43;
-    }
-
-    .wrong {
-      color: #d0021b;
-    }
-
-    /* Timer styles */
-    .timer-container {
-      margin-top: 12px;
-      font-size: 4.5vw;
-      color: #333;
-    }
-
-    /* For very small phones */
-    @media (max-width: 360px) {
-      h1 { font-size: 7vw; }
-      #question { font-size: 6vw; }
-      #answer { font-size: 6vw; }
-      button { font-size: 5vw; }
-      #result { font-size: 5vw; }
-      .timer-container { font-size: 5vw; }
-    }
-
-    /* For tablets and desktops: make text a bit more "normal" size */
-    @media (min-width: 768px) {
-      body {
-        padding: 32px;
-      }
-      #game-container {
-        max-width: 600px; /* wider on desktop/tablet */
-      }
-      h1 {
-        font-size: 32px; /* fixed size for large screens */
-      }
-      #question {
-        font-size: 24px;
-      }
-      #answer {
-        font-size: 22px;
-      }
-      button {
-        font-size: 18px;
-        min-width: 140px;
-      }
-      #result {
-        font-size: 20px;
-      }
-      .timer-container {
-        font-size: 18px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="game-container">
-    <h1>Before, After &amp; Between</h1>
-
-    <div id="question"></div>
-
-    <input id="answer" type="number" inputmode="numeric" placeholder="Type your answer">
-
-    <div>
-      <button id="checkBtn">Check</button>
-      <button id="nextBtn">Next</button>
-    </div>
-
-    <div id="result"></div>
-
-    <!-- Stopwatch display -->
-    <div class="timer-container">
-      Time: <span id="question-timer">00:00</span>
-    </div>
-  </div>
-
-  <script src="game.js"></script>
-</body>
-</html>
+// Initial load: best time + first question
+loadBestTime();
+generateQuestion();
